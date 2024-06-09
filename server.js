@@ -1,24 +1,28 @@
 const inquirer = require('inquirer');
-const mysql = require('mysql2');
-const connection = require('./Config/connection');
+const mysql = require('mysql2/promise');
 
-
-const questions = [
-    {
-      type: 'list',
-      message: 'What would you like to do?',
-      name: 'task',
-      choices: ['View All Departments',
-        'View All Roles',
-        'View All Employees', 
-        'Add a Department', 'Add a Role',
-         'Add an Employee', 'Update Employee Role'],   
-    },
-  ]
-
-  async function start(connection) {
+// Database configuration
+const dbConfig = {
+    host: 'localhost',
+    port: 3306,
+    user: 'root',
+    password: 'password',
+    database: 'employees_db'
+  };
+  
+  // Function to connect to the database
+  async function connectToDB() {
     try {
-        // Presented options to the user
+      const connection = await mysql.createConnection(dbConfig);
+      return connection;
+    } catch (error) {
+      console.error('Error connecting to the database:', error);
+    }
+  }
+
+async function start(connection) {
+    try {
+        // Show questions to user
         const { choice } = await inquirer.prompt([
           {
             type: 'list',
@@ -37,7 +41,7 @@ const questions = [
           }
         ]);
     
-        // Performed actions based on user choice
+        // Executes approrpriate function based on selection
         switch (choice) {
           case 'View all departments':
             await viewDeps(connection);
@@ -66,7 +70,7 @@ const questions = [
             process.exit(0);
         }
     
-        // After viewing tables, return to the initial menu
+        
         await start(connection);
       } catch (error) {
         console.error('Error:', error);
@@ -75,37 +79,46 @@ const questions = [
 
 
 
-async function viewDeps(){
+async function viewDeps(connection){
     try{
-    await connection.query('SELECT * FROM department', function (err, results) {
-        console.log(results);
-       return commandList();
-      });
+    const deps =await connection.query('SELECT * FROM department');
+    if (!deps){
+        console.log('No departments in database');
+    }
+    console.log(deps);
+    await start(connection);
     } catch (err) {
         console.log(err);
     }
 };
 
-async function viewEmps() {
-    connection.query('SELECT * FROM employee', function (err, results) {
-        console.log(results);
-       return commandList();
-      });
+async function viewEmps(connection) {
+   try {
+    const emps = await connection.query('SELECT * FROM employee');
+    if (!emps){
+         console.log ('No roles in database');
+        } 
+    console.log(emps)
+    await start(connection);
+   } catch (error) {
+    console.log(error);
+   } 
 };
 
-async function viewRoles() {
+async function viewRoles(connection) {
     try {
-       await connection.query('SELECT * FROM role;', function (err, results) {
-            console.log(results);
-           return commandList();
-          });
+       const results = await connection.query('SELECT * FROM role;');
+       if (!results){
+        console.log ('No roles in database');
+       } 
+       console.log(results)
+       await start(connection);
     } catch (err) {
         console.log(err);
     };
-   
 };
 
-async function updateEmp() {
+async function updateEmp(connection) {
     try{
     const [employees] = await connection.query('SELECT id, first_name, last_name FROM employee');
     const employeeChoices = employees.map(employee => ({
@@ -156,30 +169,101 @@ async function updateEmp() {
   }
 };
 
-async function addDep() {
-    inquirer.prompt({
-        type: 'input',
-        message: 'What is the name of the department?',
-        name: 'newDep',
-        validate: (newDep) => {
-            if (newDep.length >= 3){
-                return true;
-            }
-            else {
-                return 'Please enter at least 3 characters';
-            }
-        }
-    }).then((answers) =>  
-    connection.query(`INSERT INTO department (name) VALUES ${answers.newDep};`, function (err, results) {
-        console.log(results);
-       return commandList();
-    }));
+async function addDep(connection) {
+    try {
+        const { depName } = await inquirer.prompt([
+          {
+            type: 'input',
+            name: 'depName',
+            message: 'What is the name of the department?'
+          }
+        ]);
+        
+        await connection.query('INSERT INTO department (name) VALUES (?)', depName);
+        console.log(`Added department "${depName}" to the database.`);
+        await start(connection);
+      } catch (error) {
+        console.error('Error adding department:', error);
+      }
 } ;
 
-async function addEmp() {
-
+async function addEmp(connection) {
+    try {
+        // Provide current roles for selection
+        const [roles] = await connection.query('SELECT id, title FROM role');
+        const roleChoices = roles.map(role => ({
+          name: `${role.title} (ID: ${role.id})`,
+          value: role.id
+        }));
+    
+        const { firstName, lastName, roleId, managerId } = await inquirer.prompt([
+          {
+            type: 'input',
+            name: 'firstName',
+            message: "Enter the employee's first name:"
+          },
+          {
+            type: 'input',
+            name: 'lastName',
+            message: "Enter the employee's last name:"
+          },
+          {
+            type: 'list',
+            name: 'roleId',
+            message: "Select the employee's role:",
+            choices: roleChoices
+          },
+          {
+            type: 'input',
+            name: 'managerId',
+            message: "Enter the employee's manager ID:"
+          }
+        ]);
+    
+        // Add new employee to the database
+        await connection.query('INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)', [firstName, lastName, roleId, managerId]);
+        console.log(`Added employee "${firstName} ${lastName}" to the database.`);
+        await start(connection);
+      } catch (error) {
+        console.error('Error adding employee:', error);
+      }
 };
 
-async function addRole() {
-
+async function addRole(connection) {
+    try {
+        //Get details for new Role
+        const { title, salary, depId } = await inquirer.prompt([
+          {
+            type: 'input',
+            name: 'title',
+            message: 'Enter the title of the new role:'
+          },
+          {
+            type: 'input',
+            name: 'salary',
+            message: 'Enter the salary for the new role:'
+          },
+          {
+            type: 'input',
+            name: 'depId',
+            message: 'Enter the department ID for the new role:'
+          }
+        ]);
+        
+        //Add New Role to the database
+        await connection.query('INSERT INTO role (title, salary, department_id) VALUES (?, ?, ?)', [title, salary, depId]);
+        console.log(`Added role "${title}" to the database.`);
+        await start(connection);
+      } catch (error) {
+        console.error('Error adding role:', error);
+      }
 };
+
+(async () => {
+    const connection = await connectToDB();
+    if (!connection) {
+      console.error('Failed to connect to the database.');
+      return;
+    }
+    await start(connection);
+  })();

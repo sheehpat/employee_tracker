@@ -1,11 +1,11 @@
 # employee_tracker
-Employee Tracker App using the CLI, and leveraging Node.js, Inquirer, and MySql
+Employee Tracker App using the CLI, and leveraging Node.js, Inquirer, and MySql.
 
 # Description
-This is a CLI application that constructs a simple, custom SVG logo with 3 letters of text. The shape can be either a triangle, circle, or square.
+The employee tracker allows a user to maintain a company database to keep accurate records of all departments, roles, and employees. Using the command line interface a user can input details and manage and employee database
   
 # Visuals
-
+[VideoLink]()
 
 # Technologies Used
 Node.js, Inquirer, MySql
@@ -14,7 +14,7 @@ Node.js, Inquirer, MySql
 [githublink](https://github.com/sheehpat/employee_tracker)
 
 # Authors and acknowledgment
-Code written by Patrick Sheehan.
+Code written by Patrick Sheehan leveraging examples from Module 12 assignments as guidance.
   
 # Project status
 COMPLETED  
