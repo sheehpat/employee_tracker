@@ -5,7 +5,7 @@ Employee Tracker App using the CLI, and leveraging Node.js, Inquirer, and MySql.
 The employee tracker allows a user to maintain a company database to keep accurate records of all departments, roles, and employees. Using the command line interface a user can input details and manage and employee database
   
 # Visuals
-[VideoLink]()
+[VideoLink](https://drive.google.com/file/d/1F1hidXkALC-eUKS2JIPigMvgnShCcsAh/view)
 [Screenshot](./assets/screenshot2.png)
 
 # Technologies Used
