@@ -6,6 +6,7 @@ The employee tracker allows a user to maintain a company database to keep accura
   
 # Visuals
 [VideoLink]()
+[Screenshot](./assets/screenshot2.png)
 
 # Technologies Used
 Node.js, Inquirer, MySql

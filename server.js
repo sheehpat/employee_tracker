@@ -1,7 +1,7 @@
 const inquirer = require('inquirer');
 const mysql = require('mysql2/promise');
 
-// Database configuration
+// Database config
 const dbConfig = {
     host: 'localhost',
     port: 3306,
@@ -81,7 +81,7 @@ async function start(connection) {
 
 async function viewDeps(connection){
     try{
-    const deps =await connection.query('SELECT * FROM department');
+    const deps = await connection.query('SELECT * FROM department');
     if (!deps){
         console.log('No departments in database');
     }
